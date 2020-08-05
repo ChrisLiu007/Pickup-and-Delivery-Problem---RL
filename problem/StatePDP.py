@@ -165,9 +165,6 @@ class StatePDP(NamedTuple):
         # Cannot visit the depot if just visited and still unserved nodes
         mask_depot = (self.prev_a == 0) & ((mask_loc == 0).int().sum(-1) > 0)
 
-
-
-
         return torch.cat((mask_depot[:, :, None], mask_loc), -1)
 
     def construct_solutions(self, actions):

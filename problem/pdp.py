@@ -3,6 +3,9 @@ import torch
 import os
 import pickle
 from problem.StatePDP import StatePDP
+from utils.beam_search import beam_search # Should this be here?
+
+HIGH_NUMBER = 10000000
 
 class PDP(object):
 
@@ -25,7 +28,7 @@ class PDP(object):
         # Visiting depot resets capacity so we add demand = -capacity (we make sure it does not become negative)
         demand_with_depot = torch.cat(
             (
-                torch.full_like(dataset['demand'][:, :1], -CVRP.VEHICLE_CAPACITY),
+                torch.full_like(dataset['demand'][:, :1], -PDP.VEHICLE_CAPACITY),
                 dataset['demand']
             ),
             1
@@ -37,7 +40,7 @@ class PDP(object):
             used_cap += d[:, i]  # This will reset/make capacity negative if i == 0, e.g. depot visited
             # Cannot use less than 0
             used_cap[used_cap < 0] = 0
-            assert (used_cap <= CVRP.VEHICLE_CAPACITY + 1e-5).all(), "Used more than capacity"
+            assert (used_cap <= PDP.VEHICLE_CAPACITY + 1e-5).all(), "Used more than capacity"
 
         # Gather dataset in order of tour
         loc_with_depot = torch.cat((dataset['depot'][:, None, :], dataset['loc']), 1)
@@ -71,7 +74,7 @@ class PDP(object):
                 beam, fixed, expand_size, normalize=True, max_calc_batch_size=max_calc_batch_size
             )
 
-        state = CVRP.make_state(
+        state = PDP.make_state(
             input, visited_dtype=torch.int64 if compress_mask else torch.uint8
         )
 
@@ -91,7 +94,7 @@ def make_instance(args):
 
 class PDPDataset(Dataset):
 
-    def __init__(self, filename=None, size=50, num_samples=1000000, offset=0, distribution=None):
+    def __init__(self, filename=None, size=50, num_samples=10, offset=0, distribution=None):
         super(PDPDataset, self).__init__()
 
         assert size%2 == 0
@@ -115,16 +118,18 @@ class PDPDataset(Dataset):
             }
             self.data = []
             for i in range(num_samples):
-                tmp = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(
-                    2)
+                tmp = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(2)
                 tmp[1::2] *= -1
+                odd = i%2
+                even =(i+1)%2
                 self.data += [
                     {
                         'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
                         # Uniform 1 - 9, scaled by capacities
                         'demand': tmp,
-                        #'calls' : {i:j for i,j in }
-                        'depot': torch.FloatTensor(2).uniform_(0, 1)
+                        'depot': torch.FloatTensor(2).uniform_(0, 1),
+                        'p_or_d': torch.FloatTensor([(not odd)*-HIGH_NUMBER + odd*(i-1), (not even)*-HIGH_NUMBER + even*(i+1)]).int()
+                        #'time_windows': torch.FloatTensor([]),
                     }
                 ]
 
@@ -136,5 +141,7 @@ class PDPDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx]
 
+
 if __name__ == '__main__':
     a = PDPDataset()
+    print(a.data)
