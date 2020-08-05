@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 import torch
 import os
 import pickle
+from problem.StatePDP import StatePDP
 
 class PDP(object):
 
@@ -55,7 +56,7 @@ class PDP(object):
 
     @staticmethod
     def make_state(*args, **kwargs):
-        return StateCVRP.initialize(*args, **kwargs)
+        return StatePDP.initialize(*args, **kwargs)
 
     @staticmethod
     def beam_search(input, beam_size, expand_size=None,

@@ -1,6 +1,6 @@
 import torch
 from typing import NamedTuple
-from util import mask_long2bool, mask_long_scatter
+from utils.boolmask import mask_long2bool, mask_long_scatter
 
 
 class StatePDP(NamedTuple):
