@@ -14,7 +14,7 @@ from train import train_epoch, validate, get_inner_model
 from reinforce_baselines import NoBaseline, ExponentialBaseline, CriticBaseline, RolloutBaseline, WarmupBaseline
 from nets.attention_model import AttentionModel
 #from nets.pointer_network import PointerNetwork, CriticNetworkLSTM
-from utils import torch_load_cpu, load_problem
+from utils.functions import torch_load_cpu, load_problem
 
 
 def run(opts):
@@ -170,3 +170,5 @@ def run(opts):
 
 if __name__ == "__main__":
     run(get_options())
+
+# python run.py --problem pdp --graph_size 20 --baseline rollout

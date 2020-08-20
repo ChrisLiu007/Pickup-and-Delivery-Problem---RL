@@ -66,6 +66,10 @@ class AttentionModel(nn.Module):
         self.is_orienteering = problem.NAME == 'op'
         self.is_pctsp = problem.NAME == 'pctsp'
 
+        #Jakob:
+        self.is_pdp = problem.NAME = 'pdp'
+
+
         self.tanh_clipping = tanh_clipping
 
         self.mask_inner = mask_inner
@@ -77,7 +81,7 @@ class AttentionModel(nn.Module):
         self.shrink_size = shrink_size
 
         # Problem specific context parameters (placeholder and step context dimension)
-        if self.is_vrp or self.is_orienteering or self.is_pctsp:
+        if self.is_vrp or self.is_orienteering or self.is_pctsp or self.is_pdp:
             # Embedding of last node + remaining_capacity / remaining length / remaining prize to collect
             step_context_dim = embedding_dim + 1
 
