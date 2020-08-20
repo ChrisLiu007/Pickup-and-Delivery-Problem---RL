@@ -60,6 +60,11 @@ class StatePDP(NamedTuple):
         demand = input['demand']
 
         batch_size, n_loc, _ = loc.size()
+
+        print("here")
+        print(torch.stack((torch.ones(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device),
+              torch.ones(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device)), dim=1))
+
         return StatePDP(
             coords=torch.cat((depot[:, None, :], loc), -2),
             demand=demand,

@@ -205,14 +205,15 @@ class AttentionModel(nn.Module):
 
     def _init_embed(self, input):
 
-        if self.is_vrp or self.is_orienteering or self.is_pctsp:
+        if self.is_vrp or self.is_orienteering or self.is_pctsp or self.is_pdp:
             if self.is_vrp:
                 features = ('demand', )
             elif self.is_orienteering:
                 features = ('prize', )
-            else:
-                assert self.is_pctsp
+            elif self.is_pctsp:
                 features = ('deterministic_prize', 'penalty')
+            elif self.is_pdp:
+                features = ('demand',)  # p_or_d
             return torch.cat(
                 (
                     self.init_embed_depot(input['depot'])[:, None, :],
