@@ -118,17 +118,15 @@ class PDPDataset(Dataset):
             }
             self.data = []
             for i in range(num_samples):
-                tmp = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(2)
-                tmp[1::2] *= -1
-                odd = i%2
-                even =(i+1)%2
+                demand = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(2)
+                demand[1::2] *= -1
                 self.data += [
                     {
                         'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
                         # Uniform 1 - 9, scaled by capacities
-                        'demand': tmp,
+                        'demand': demand,
                         'depot': torch.FloatTensor(2).uniform_(0, 1),
-                        'p_or_d': torch.FloatTensor([(not odd)*-HIGH_NUMBER + odd*(i-1), (not even)*-HIGH_NUMBER + even*(i+1)]).int()
+                        'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
                         #'time_windows': torch.FloatTensor([]),
                     }
                 ]
