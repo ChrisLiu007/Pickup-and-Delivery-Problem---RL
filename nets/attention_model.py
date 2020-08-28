@@ -383,7 +383,7 @@ class AttentionModel(nn.Module):
         current_node = state.get_current_node()
         batch_size, num_steps = current_node.size()
 
-        if self.is_vrp:
+        if self.is_vrp or self.is_pdp:  # Jakob --> NB NB. Maybe code needs to be changed here to match pdp task requirement.
             # Embedding of previous node + remaining capacity
             if from_depot:
                 # 1st dimension is node idx, but we do not squeeze it since we want to insert step dimension

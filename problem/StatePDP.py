@@ -60,10 +60,18 @@ class StatePDP(NamedTuple):
         demand = input['demand']
 
         batch_size, n_loc, _ = loc.size()
-
-        print("here")
-        print(torch.stack((torch.ones(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device),
-              torch.ones(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device)), dim=1))
+        forbidden = (  # Visited as mask is easier to understand, as long more memory efficient
+                # Keep visited_ with depot so we can scatter efficiently
+                torch.zeros(
+                    batch_size, 1, n_loc + 1,
+                    dtype=torch.uint8, device=loc.device
+                )
+                if visited_dtype == torch.uint8
+                else torch.zeros(batch_size, 1, (n_loc + 63) // 64, dtype=torch.int64, device=loc.device)  # Ceil
+            )
+        forbidden[:, :, ::2] = 1
+        #print("forbidden_size: ", forbidden.size())
+        #print(forbidden)
 
         return StatePDP(
             coords=torch.cat((depot[:, None, :], loc), -2),
@@ -83,9 +91,7 @@ class StatePDP(NamedTuple):
             lengths=torch.zeros(batch_size, 1, device=loc.device),
             cur_coord=input['depot'][:, None, :],  # Add step dimension
             i=torch.zeros(1, dtype=torch.int64, device=loc.device),  # Vector with length num_steps
-            forbidden=torch.stack((torch.ones(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device)
-                                   , torch.zeros(batch_size, 1, n_loc, dtype=torch.uint8, device=loc.device))
-                                  , dim=1).t().flatten()
+            forbidden=forbidden
         )
 
     def get_final_cost(self):
@@ -159,7 +165,7 @@ class StatePDP(NamedTuple):
 
 
         # Can not visit the delivery nodes for which the pick-up has not yet happened
-        mask_loc = visited_loc | self.forbidden
+        mask_loc = visited_loc | self.forbidden[:, :, 1:]  # Jakob. Attempt to match dimensions.
 
         # For demand steps_dim is inserted by indexing with id, for used_capacity insert node dim for broadcasting
         exceeds_cap = (self.demand[self.ids, :] + self.used_capacity[:, :, None] > self.VEHICLE_CAPACITY)
