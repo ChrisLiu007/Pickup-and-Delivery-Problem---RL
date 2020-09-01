@@ -123,7 +123,8 @@ class StatePDP(NamedTuple):
 
         # Increase capacity if depot is not visited, otherwise set to 0
         #used_capacity = torch.where(selected == 0, 0, self.used_capacity + selected_demand)
-        used_capacity = (self.used_capacity + selected_demand) * (prev_a != 0).float()
+        #used_capacity = (self.used_capacity + selected_demand) * (prev_a != 0).float()  # EDITED Jakob: Original Version
+        used_capacity = self.used_capacity + (selected_demand * (prev_a != 0).float()) # EDITED Jakob: Visiting depot does NOT reset capacity
 
         if self.visited_.dtype == torch.uint8:
             # Note: here we do not subtract one as we have to scatter so the first column allows scattering depot
@@ -132,12 +133,18 @@ class StatePDP(NamedTuple):
         else:
             # This works, will not set anything if prev_a -1 == -1 (depot)
             visited_ = mask_long_scatter(self.visited_, prev_a - 1)
+            assert False, "This should not be used"  # Jakob
 
 
         forbidden = self.forbidden
         forbidden[:, :, 2::2] = torch.logical_not(visited_[:, :, 1::2])
+
         #print("forbidden", forbidden.size(), forbidden)
         #print("visited", visited_.size(), visited_)
+        #print("used_cap", used_capacity)
+        #print("current node", prev_a)
+        assert (used_capacity[:, :] <= self.VEHICLE_CAPACITY).all(), "overloaded!"
+
         return self._replace(
             prev_a=prev_a, used_capacity=used_capacity, visited_=visited_, forbidden=forbidden,
             lengths=lengths, cur_coord=cur_coord, i=self.i + 1
@@ -176,7 +183,9 @@ class StatePDP(NamedTuple):
         mask_loc = mask_loc.to(exceeds_cap.dtype) | exceeds_cap
 
         # Cannot visit the depot if just visited and still unserved nodes
-        mask_depot = (self.prev_a == 0) & ((mask_loc == 0).int().sum(-1) > 0)
+        #mask_depot = (self.prev_a == 0) & ((mask_loc == 0).int().sum(-1) > 0)  # EDITED Jakob: Original Version
+        #assert False, (mask_loc == 0).int().sum(-1) > 0
+        mask_depot = (mask_loc == 0).int().sum(-1) > 0  # EDITED Jakob: Should only go back to depot when done.
 
         return torch.cat((mask_depot[:, :, None], mask_loc), -1)
 

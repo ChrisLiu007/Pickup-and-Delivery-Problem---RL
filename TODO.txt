@@ -1,0 +1,2 @@
+- DONE 31/08 fix capacity problem
+- DONE 31/08 fix going back to depot resets capacity
