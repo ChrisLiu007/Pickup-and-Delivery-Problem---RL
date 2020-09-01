@@ -135,7 +135,9 @@ class StatePDP(NamedTuple):
 
 
         forbidden = self.forbidden
-        forbidden[::2] = torch.logical_not(visited_[1::2])
+        forbidden[:, :, 2::2] = torch.logical_not(visited_[:, :, 1::2])
+        #print("forbidden", forbidden.size(), forbidden)
+        #print("visited", visited_.size(), visited_)
         return self._replace(
             prev_a=prev_a, used_capacity=used_capacity, visited_=visited_, forbidden=forbidden,
             lengths=lengths, cur_coord=cur_coord, i=self.i + 1

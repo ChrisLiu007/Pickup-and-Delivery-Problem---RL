@@ -119,6 +119,7 @@ if __name__ == "__main__":
         'tsp': [None],
         'vrp': [None],
         'pctsp': [None],
+        'pdp': [None],
         'op': ['const', 'unif', 'dist']
     }
     if opts.problem == 'all':

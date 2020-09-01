@@ -67,7 +67,7 @@ class AttentionModel(nn.Module):
         self.is_pctsp = problem.NAME == 'pctsp'
 
         #Jakob:
-        self.is_pdp = problem.NAME = 'pdp'
+        self.is_pdp = problem.NAME == 'pdp'
 
 
         self.tanh_clipping = tanh_clipping
