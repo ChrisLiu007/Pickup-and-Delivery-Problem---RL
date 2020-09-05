@@ -94,7 +94,7 @@ def make_instance(args):
 
 class PDPDataset(Dataset):
 
-    def __init__(self, filename=None, size=50, num_samples=10, offset=0, distribution=None):
+    def __init__(self, filename=None, size=50, num_samples=1000000, offset=0, distribution=None):
         super(PDPDataset, self).__init__()
 
         assert size%2 == 0
