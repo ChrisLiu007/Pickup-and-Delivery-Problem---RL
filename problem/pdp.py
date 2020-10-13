@@ -111,10 +111,10 @@ class PDPDataset(Dataset):
 
             # From VRP with RL paper https://arxiv.org/abs/1802.04240
             CAPACITIES = {
-                10: 20.,
-                20: 30.,
-                50: 40.,
-                100: 50.
+                10: 10., #20., I divided by 2 from original because there are fewer calls that is picked up.
+                20: 15., #30.
+                50: 20., #40.
+                100: 25. #50.
             }
             self.data = []
             for i in range(num_samples):
