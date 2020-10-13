@@ -3,7 +3,7 @@ import torch
 import os
 import pickle
 from problem.StatePDP import StatePDP
-from utils.beam_search import beam_search # Should this be here?
+from utils.beam_search import beam_search  # Should this be here?
 
 HIGH_NUMBER = 10000000
 
