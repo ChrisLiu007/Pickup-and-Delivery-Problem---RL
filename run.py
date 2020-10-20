@@ -14,7 +14,8 @@ from train import train_epoch, validate, get_inner_model
 from reinforce_baselines import NoBaseline, ExponentialBaseline, CriticBaseline, RolloutBaseline, WarmupBaseline
 from nets.attention_model import AttentionModel
 #from nets.pointer_network import PointerNetwork, CriticNetworkLSTM
-from utils.functions import torch_load_cpu, load_problem
+from utils.functions import torch_load_cpu
+from problem.pdp import PDP
 
 
 def run(opts):
@@ -38,9 +39,6 @@ def run(opts):
     # Set the device
     opts.device = torch.device("cuda:0" if opts.use_cuda else "cpu")
 
-    # Figure out what's the problem
-    problem = load_problem(opts.problem)
-
     # Load data from load_path
     load_data = {}
     assert opts.load_path is None or opts.resume is None, "Only one of load path and resume can be given"
@@ -49,23 +47,14 @@ def run(opts):
         print('  [*] Loading data from {}'.format(load_path))
         load_data = torch_load_cpu(load_path)
 
-    # Initialize model
-    model_class = {
-        'attention': AttentionModel,
-        #'pointer': PointerNetwork
-    }.get(opts.model, None)
-    assert model_class is not None, "Unknown model: {}".format(model_class)
-    model = model_class(
+    model = AttentionModel(
         opts.embedding_dim,
         opts.hidden_dim,
-        problem,
         n_encode_layers=opts.n_encode_layers,
         mask_inner=True,
         mask_logits=True,
         normalization=opts.normalization,
         tanh_clipping=opts.tanh_clipping,
-        checkpoint_encoder=opts.checkpoint_encoder,
-        shrink_size=opts.shrink_size
     ).to(opts.device)
 
     if opts.use_cuda and torch.cuda.device_count() > 1:
@@ -78,30 +67,9 @@ def run(opts):
     # Initialize baseline
     if opts.baseline == 'exponential':
         baseline = ExponentialBaseline(opts.exp_beta)
-    # elif opts.baseline == 'critic' or opts.baseline == 'critic_lstm':
-    #     assert problem.NAME == 'tsp', "Critic only supported for TSP"
-    #     baseline = CriticBaseline(
-    #         (
-    #             CriticNetworkLSTM(
-    #                 2,
-    #                 opts.embedding_dim,
-    #                 opts.hidden_dim,
-    #                 opts.n_encode_layers,
-    #                 opts.tanh_clipping
-    #             )
-    #             if opts.baseline == 'critic_lstm'
-    #             else
-    #             CriticNetwork(
-    #                 2,
-    #                 opts.embedding_dim,
-    #                 opts.hidden_dim,
-    #                 opts.n_encode_layers,
-    #                 opts.normalization
-    #             )
-    #         ).to(opts.device)
-    #     )
+
     elif opts.baseline == 'rollout':
-        baseline = RolloutBaseline(model, problem, opts)
+        baseline = RolloutBaseline(model, PDP, opts)
     else:
         assert opts.baseline is None, "Unknown baseline: {}".format(opts.baseline)
         baseline = NoBaseline()
@@ -136,7 +104,7 @@ def run(opts):
     lr_scheduler = optim.lr_scheduler.LambdaLR(optimizer, lambda epoch: opts.lr_decay ** epoch)
 
     # Start the actual training loop
-    val_dataset = problem.make_dataset(
+    val_dataset = PDP.make_dataset(
         size=opts.graph_size, num_samples=opts.val_size, filename=opts.val_dataset, distribution=opts.data_distribution)
 
     if opts.resume:
@@ -162,7 +130,7 @@ def run(opts):
                 lr_scheduler,
                 epoch,
                 val_dataset,
-                problem,
+                PDP,
                 tb_logger,
                 opts
             )

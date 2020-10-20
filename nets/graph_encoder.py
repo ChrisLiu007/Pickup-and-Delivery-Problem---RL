@@ -193,16 +193,8 @@ class GraphAttentionEncoder(nn.Module):
             for _ in range(n_layers)
         ))
 
-    def forward(self, x, mask=None):
+    def forward(self, x):
 
-        assert mask is None, "TODO mask not yet supported!"
+        h = self.layers(x)
+        return h  # (batch_size, graph_size, embed_dim)
 
-        # Batch multiply to get initial embeddings of nodes
-        h = self.init_embed(x.view(-1, x.size(-1))).view(*x.size()[:2], -1) if self.init_embed is not None else x
-
-        h = self.layers(h)
-
-        return (
-            h,  # (batch_size, graph_size, embed_dim)
-            h.mean(dim=1),  # average to get embedding of graph, (batch_size, embed_dim)
-        )
