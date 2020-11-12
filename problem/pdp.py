@@ -125,8 +125,8 @@ class PDPDataset(Dataset):
                         'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
                         # Uniform 1 - 9, scaled by capacities
                         'demand': demand,
-                        'depot': torch.FloatTensor(2).uniform_(0, 1),
-                        'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
+                        'depot': torch.FloatTensor(2).uniform_(0, 1)
+                        #'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
                         #'time_windows': torch.FloatTensor([]),
                     }
                 ]
