@@ -4,8 +4,9 @@ from tqdm import tqdm
 import torch
 import math
 
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 from torch.nn import DataParallel
+from torch_geometric.data import DataLoader
 
 from nets.attention_model import set_decode_type
 from utils.log_utils import log_values
@@ -81,7 +82,7 @@ def train_epoch(model, optimizer, baseline, lr_scheduler, epoch, val_dataset, pr
     model.train()
     set_decode_type(model, "sampling")
 
-    for batch_id, batch in enumerate(tqdm(training_dataloader, disable=opts.no_progress_bar)):
+    for batch_id, batch in enumerate(training_dataloader):
 
         train_batch(
             model,

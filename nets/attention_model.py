@@ -6,7 +6,9 @@ from typing import NamedTuple
 from utils.tensor_functions import compute_in_batches
 
 from problem.pdp import PDP
+from torch_geometric.nn import GATConv
 from nets.graph_encoder import GraphAttentionEncoder
+from nets.TorchGeoGraphEncoder import TorchGeoGraphAttentionEncoder
 from torch.nn import DataParallel
 from utils.beam_search import CachedLookup
 from utils.functions import sample_many
@@ -77,7 +79,14 @@ class AttentionModel(nn.Module):
 
         self.init_embed = nn.Linear(node_dim, embedding_dim)
 
-        self.embedder = GraphAttentionEncoder(
+        # self.embedder = GraphAttentionEncoder(
+        #     n_heads=n_heads,
+        #     embed_dim=embedding_dim,
+        #     n_layers=self.n_encode_layers,
+        #     normalization=normalization
+        # )
+
+        self.embedder = TorchGeoGraphAttentionEncoder(
             n_heads=n_heads,
             embed_dim=embedding_dim,
             n_layers=self.n_encode_layers,
@@ -104,8 +113,10 @@ class AttentionModel(nn.Module):
         using DataParallel as the results may be of different lengths on different GPUs
         :return:
         """
-
-        embeddings = self.embedder(self._init_embed(input))
+        batch_size = input.batch.max() + 1
+        input.loc = input.loc[:, None, :].view(batch_size, 20, -1)
+        input.demand = input.demand[:, None, :].view(batch_size, 20, -1)
+        embeddings = self.embedder(self._init_embed(input), input.edge_index)
 
         _log_p, pi = self._inner(input, embeddings)
 
@@ -120,12 +131,6 @@ class AttentionModel(nn.Module):
 
     def beam_search(self, *args, **kwargs):
         return self.problem.beam_search(*args, **kwargs, model=self)
-
-    def precompute_fixed(self, input):
-        embeddings, _ = self.embedder(self._init_embed(input))
-        # Use a CachedLookup such that if we repeatedly index this object with the same index we only need to do
-        # the lookup once... this is the case if all elements in the batch have maximum batch size
-        return CachedLookup(self._precompute(embeddings))
 
 
     def _calc_log_likelihood(self, _log_p, a, mask):
@@ -147,11 +152,11 @@ class AttentionModel(nn.Module):
         features = ('demand',)  # p_or_d
         return torch.cat(
             (
-                self.init_embed_depot(input['depot'])[:, None, :],
                 self.init_embed(torch.cat((
                     input['loc'],
-                    *(input[feat][:, :, None] for feat in features)
-                ), -1))
+                    *(input[feat] for feat in features)
+                ), -1)),
+                self.init_embed_depot(input['depot'])[:, None, :]
             ),
             1
         )

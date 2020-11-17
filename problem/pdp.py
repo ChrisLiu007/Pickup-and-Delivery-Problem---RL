@@ -1,4 +1,6 @@
-from torch.utils.data import Dataset
+#from torch.utils.data import Dataset
+from torch_geometric.data import Dataset, Data
+from torch_geometric.utils import dense_to_sparse
 import torch
 import os
 import pickle
@@ -98,7 +100,7 @@ class PDPDataset(Dataset):
         super(PDPDataset, self).__init__()
 
         assert size%2 == 0
-
+        self.graph_size = size
         self.data_set = []
         if filename is not None:
             assert os.path.splitext(filename)[1] == '.pkl'
@@ -118,21 +120,26 @@ class PDPDataset(Dataset):
             }
             self.data = []
             for i in range(num_samples):
-                demand = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(2)
+                demand = ((torch.FloatTensor(size // 2).uniform_(0, 9).int() + 1).float() / CAPACITIES[size]).repeat_interleave(2)[:,None]
                 demand[1::2] *= -1
+                loc = torch.FloatTensor(size, 2).uniform_(0, 1)
+                depot = torch.FloatTensor(1, 2).uniform_(0, 1)
+                x = torch.cat((loc, depot), dim=0)
                 self.data += [
-                    {
-                        'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
+                    Data(
+                        x=x,
+                        loc=loc,
                         # Uniform 1 - 9, scaled by capacities
-                        'demand': demand,
-                        'depot': torch.FloatTensor(2).uniform_(0, 1),
-                        'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
-                        #'time_windows': torch.FloatTensor([]),
-                    }
+                        demand=demand,
+                        depot=depot,
+                        p_or_d=torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int(),
+                        edge_index=self._graph_construct()[0]
+                    )
                 ]
-
         self.size = len(self.data)
-
+    def _graph_construct(self):
+        edges = dense_to_sparse(torch.ones([self.graph_size+1, self.graph_size+1]))
+        return edges
     def __len__(self):
         return self.size
 

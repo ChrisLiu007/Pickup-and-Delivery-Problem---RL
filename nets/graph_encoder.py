@@ -11,6 +11,9 @@ class SkipConnection(nn.Module):
         self.module = module
 
     def forward(self, input):
+        if len(input) == 2:
+            input[0] += self.module(*input)
+            return input
         return input + self.module(input)
 
 
@@ -133,7 +136,7 @@ class Normalization(nn.Module):
             stdv = 1. / math.sqrt(param.size(-1))
             param.data.uniform_(-stdv, stdv)
 
-    def forward(self, input):
+    def forward(self, input, edge_index=None):
 
         if isinstance(self.normalizer, nn.BatchNorm1d):
             return self.normalizer(input.view(-1, input.size(-1))).view(*input.size())

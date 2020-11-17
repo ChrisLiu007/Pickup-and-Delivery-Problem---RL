@@ -70,8 +70,6 @@ class StatePDP(NamedTuple):
                 else torch.zeros(batch_size, 1, (n_loc + 63) // 64, dtype=torch.int64, device=loc.device)  # Ceil
             )
         forbidden[:, :, ::2] = 1
-        #print("forbidden_size: ", forbidden.size())
-        #print(forbidden)
 
         return StatePDP(
             coords=torch.cat((depot[:, None, :], loc), -2),
