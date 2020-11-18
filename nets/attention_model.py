@@ -152,11 +152,11 @@ class AttentionModel(nn.Module):
         features = ('demand',)  # p_or_d
         return torch.cat(
             (
+                self.init_embed_depot(input['depot'])[:, None, :],
                 self.init_embed(torch.cat((
                     input['loc'],
                     *(input[feat] for feat in features)
                 ), -1)),
-                self.init_embed_depot(input['depot'])[:, None, :]
             ),
             1
         )

@@ -124,7 +124,7 @@ class PDPDataset(Dataset):
                 demand[1::2] *= -1
                 loc = torch.FloatTensor(size, 2).uniform_(0, 1)
                 depot = torch.FloatTensor(1, 2).uniform_(0, 1)
-                x = torch.cat((loc, depot), dim=0)
+                x = torch.cat((depot, loc), dim=0)
                 self.data += [
                     Data(
                         x=x,

@@ -12,8 +12,9 @@ class SkipConnection(nn.Module):
 
     def forward(self, input):
         if len(input) == 2:
-            input[0] += self.module(*input)
-            return input
+            x, edge_index = input
+            x += self.module(x, edge_index)
+            return x, edge_index
         return input + self.module(input)
 
 

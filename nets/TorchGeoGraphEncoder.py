@@ -16,10 +16,9 @@ class mySequential(nn.Sequential):
                 if isinstance(module.module, GATConvclass):
                     input = module(input)
                 else:
-                    input = module(input[0])
-                    continue
+                    input = module(input[0]), input[1]
             else:
-                input = module(input[0])
+                input = module(input[0]), input[1]
         return input
 
 
@@ -64,13 +63,13 @@ class GATConvclass(MessagePassing):
             param.data.uniform_(-stdv, stdv)
 
     def message(self, edge_index_i, V_i, Q_j, K_i, size_i):
-        compatibility = self.norm_factor * Q_j * K_i
+        compatibility = self.norm_factor * torch.sum(Q_j * K_i, dim=-1)
 
         attn = softmax(compatibility, edge_index_i, size_i)
-        return V_i * attn.view(-1, self.heads, 1)
+        return V_i * attn.view(-1, self.n_heads, 1)
     def update(self, aggr_out):
         out = torch.mm(
-            aggr_out.permute(1, 2, 0, 3).contiguous().view(-1, self.n_heads * self.val_dim),
+            aggr_out.contiguous().view(-1, self.n_heads * self.val_dim),
             self.W_out.view(-1, self.embed_dim)
         ).view(self.batch_size, self.graph_size, self.embed_dim)
 
@@ -136,5 +135,5 @@ class TorchGeoGraphAttentionEncoder(nn.Module):
     def forward(self, x, edge_index):
 
         h = self.layers(x, edge_index)
-        return h
+        return h[0]
 
