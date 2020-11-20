@@ -116,7 +116,7 @@ class AttentionModel(nn.Module):
         batch_size = input.num_graphs
         graph_size = input.num_nodes//batch_size -1
         input.loc = input.loc[:, None, :].view(batch_size, graph_size, -1)
-        input.demand = input.demand[:, None, :].view(batch_size, graph_size, -1)
+        input.demand = input.demand[:, None, :].view(batch_size, graph_size)
         embeddings = self.embedder(self._init_embed(input), input.edge_index)
         input.demand=input.demand.view(batch_size, graph_size)
         _log_p, pi = self._inner(input, embeddings)
@@ -156,7 +156,7 @@ class AttentionModel(nn.Module):
                 self.init_embed_depot(input['depot'])[:, None, :],
                 self.init_embed(torch.cat((
                     input['loc'],
-                    *(input[feat] for feat in features)
+                    *(input[feat][:, :, None] for feat in features)
                 ), -1)),
             ),
             1

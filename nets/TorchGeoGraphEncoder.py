@@ -84,10 +84,11 @@ class GATConvclass(MessagePassing):
         shp = shp_q = (self.batch_size*self.graph_size, self.n_heads, -1)
 
         # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
+        Q = torch.matmul(qflat, self.W_query).view(shp_q)
+        # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
         K = torch.matmul(hflat, self.W_key).view(shp)
         V = torch.matmul(hflat, self.W_val).view(shp)
-        Q = torch.matmul(qflat, self.W_query).view(shp_q)
-        return self.propagate(edge_index, Q=Q, K=K, V=V, size=self.batch_size*self.graph_size)
+        return self.propagate(edge_index, Q=Q.detach(), K=K.detach(), V=V.detach(), size=self.batch_size*self.graph_size)
 
 class GATLayer(mySequential):
     def __init__(
