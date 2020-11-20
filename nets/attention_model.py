@@ -113,11 +113,12 @@ class AttentionModel(nn.Module):
         using DataParallel as the results may be of different lengths on different GPUs
         :return:
         """
-        batch_size = input.batch.max() + 1
-        input.loc = input.loc[:, None, :].view(batch_size, 20, -1)
-        input.demand = input.demand[:, None, :].view(batch_size, 20, -1)
+        batch_size = input.num_graphs
+        graph_size = input.num_nodes//batch_size -1
+        input.loc = input.loc[:, None, :].view(batch_size, graph_size, -1)
+        input.demand = input.demand[:, None, :].view(batch_size, graph_size, -1)
         embeddings = self.embedder(self._init_embed(input), input.edge_index)
-
+        input.demand=input.demand.view(batch_size, graph_size)
         _log_p, pi = self._inner(input, embeddings)
 
         cost, mask = self.problem.get_costs(input, pi)
