@@ -82,7 +82,7 @@ def train_epoch(model, optimizer, baseline, lr_scheduler, epoch, val_dataset, pr
     model.train()
     set_decode_type(model, "sampling")
 
-    for batch_id, batch in enumerate(training_dataloader):
+    for batch_id, batch in enumerate(tqdm(training_dataloader, disable=opts.no_progress_bar)):
 
         train_batch(
             model,
