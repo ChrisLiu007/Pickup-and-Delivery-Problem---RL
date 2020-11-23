@@ -31,7 +31,7 @@ class GATConvclass(MessagePassing):
             val_dim=None,
             key_dim=None
     ):
-        super(GATConvclass, self).__init__(aggr='add')
+        super(GATConvclass, self).__init__(aggr='add', node_dim=0)
 
         if val_dim is None:
             assert embed_dim is not None, "Provide either embed_dim or val_dim"
@@ -63,9 +63,10 @@ class GATConvclass(MessagePassing):
             param.data.uniform_(-stdv, stdv)
 
     def message(self, edge_index_i, V_i, Q_j, K_i, size_i):
-        compatibility = self.norm_factor * torch.sum(Q_j * K_i, dim=-1)
+        attn = self.norm_factor * (Q_j * K_i).sum(dim=-1)
 
-        attn = softmax(compatibility, edge_index_i, size_i)
+        attn = softmax(attn, edge_index_i, num_nodes=size_i)
+
         return V_i * attn.view(-1, self.n_heads, 1)
     def update(self, aggr_out):
         out = torch.mm(
@@ -88,7 +89,8 @@ class GATConvclass(MessagePassing):
         # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
         K = torch.matmul(hflat, self.W_key).view(shp)
         V = torch.matmul(hflat, self.W_val).view(shp)
-        return self.propagate(edge_index, Q=Q.detach(), K=K.detach(), V=V.detach(), size=self.batch_size*self.graph_size)
+        out = self.propagate(edge_index, x=V, Q=Q, K=K, V=V, size=None)
+        return out
 
 class GATLayer(mySequential):
     def __init__(
