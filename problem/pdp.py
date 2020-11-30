@@ -125,16 +125,26 @@ class PDPDataset(Dataset):
                 demand[1::2] *= -1
                 loc = torch.FloatTensor(size, 2).uniform_(0, 1)
                 depot = torch.FloatTensor(1, 2).uniform_(0, 1)
+                x = torch.cat((depot, loc), dim=0)
                 self.data += [
-                    Data(
-                        # x=x,
-                        loc=loc,
+                    {
+                        'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
                         # Uniform 1 - 9, scaled by capacities
-                        demand=demand,
-                        depot=depot,
-                        # p_or_d=torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int(),
-                        edge_index=self._graph_construct()[0]
-                    )
+                        'demand': demand,
+                        'depot': torch.FloatTensor(2).uniform_(0, 1),
+                        'edge_index':self._graph_construct()[0]
+                        # 'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
+                        # 'time_windows': torch.FloatTensor([]),
+                    }
+                    # Data(
+                    #     # x=x,
+                    #     loc=loc,
+                    #     # Uniform 1 - 9, scaled by capacities
+                    #     demand=demand,
+                    #     depot=depot,
+                    #     # p_or_d=torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int(),
+                    #     edge_index=self._graph_construct()[0]
+                    # )
                 ]
         self.size = len(self.data)
     def _graph_construct(self):

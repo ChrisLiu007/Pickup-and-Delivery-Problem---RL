@@ -6,7 +6,7 @@ import math
 
 # from torch.utils.data import DataLoader
 from torch.nn import DataParallel
-from torch_geometric.data import DataLoader
+from utils.Dataloader import DataLoader
 
 from nets.attention_model import set_decode_type
 from utils.log_utils import log_values
