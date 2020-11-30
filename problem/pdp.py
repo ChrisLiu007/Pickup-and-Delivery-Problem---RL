@@ -1,5 +1,5 @@
-#from torch.utils.data import Dataset
-from torch_geometric.data import Dataset, Data
+from torch.utils.data import Dataset
+# from torch_geometric.data import Dataset, Data
 from torch_geometric.utils import dense_to_sparse
 import torch
 import os
@@ -128,11 +128,11 @@ class PDPDataset(Dataset):
                 x = torch.cat((depot, loc), dim=0)
                 self.data += [
                     {
-                        'loc': torch.FloatTensor(size, 2).uniform_(0, 1),
+                        'loc': loc,
                         # Uniform 1 - 9, scaled by capacities
                         'demand': demand,
-                        'depot': torch.FloatTensor(2).uniform_(0, 1),
-                        'edge_index':self._graph_construct()[0]
+                        'depot': depot,
+                        'edge_index': self._graph_construct()[0]
                         # 'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
                         # 'time_windows': torch.FloatTensor([]),
                     }
