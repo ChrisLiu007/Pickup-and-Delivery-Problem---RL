@@ -96,6 +96,7 @@ def make_instance(args):
 
 class PDPDataset(Dataset):
 
+
     def __init__(self, filename=None, size=50, num_samples=1000000, offset=0, distribution=None):
         super(PDPDataset, self).__init__()
 
@@ -127,12 +128,12 @@ class PDPDataset(Dataset):
                 x = torch.cat((depot, loc), dim=0)
                 self.data += [
                     Data(
-                        x=x,
+                        # x=x,
                         loc=loc,
                         # Uniform 1 - 9, scaled by capacities
                         demand=demand,
                         depot=depot,
-                        p_or_d=torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int(),
+                        # p_or_d=torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int(),
                         edge_index=self._graph_construct()[0]
                     )
                 ]

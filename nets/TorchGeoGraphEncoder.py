@@ -85,10 +85,10 @@ class GATConvclass(MessagePassing):
         shp = shp_q = (self.batch_size*self.graph_size, self.n_heads, -1)
 
         # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
-        Q = torch.matmul(qflat, self.W_query).view(shp_q)
+        Q = torch.matmul(qflat, self.W_query).view(shp_q) # other nodes that we want the attention from.
         # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
-        K = torch.matmul(hflat, self.W_key).view(shp)
-        V = torch.matmul(hflat, self.W_val).view(shp)
+        K = torch.matmul(hflat, self.W_key).view(shp) # key value for each of the nodes
+        V = torch.matmul(hflat, self.W_val).view(shp) # value of each of the nodes.
         out = self.propagate(edge_index, x=V, Q=Q, K=K, V=V, size=None)
         return out
 
@@ -139,4 +139,3 @@ class TorchGeoGraphAttentionEncoder(nn.Module):
 
         h = self.layers(x, edge_index)
         return h[0]
-
