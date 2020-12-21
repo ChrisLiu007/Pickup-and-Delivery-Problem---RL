@@ -132,7 +132,7 @@ class PDPDataset(Dataset):
                         # Uniform 1 - 9, scaled by capacities
                         'demand': demand,
                         'depot': depot,
-                        'edge_index': self._graph_construct()[0]
+                        # 'edge_index': self._graph_construct()[0]
                         # 'p_or_d': torch.FloatTensor([((not j%2)*-HIGH_NUMBER + (j%2)*(j-1), (not (j+1)%2)*-HIGH_NUMBER + ((j+1)%2)*(j+1)) for j in range(size)]).int()
                         # 'time_windows': torch.FloatTensor([]),
                     }

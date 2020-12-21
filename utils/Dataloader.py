@@ -5,6 +5,7 @@ from torch import Tensor
 from torch_sparse import SparseTensor, cat
 import torch_geometric
 from torch_geometric.data import Data
+from torch_geometric.utils import dense_to_sparse
 from torch._six import container_abcs, string_classes, int_classes
 import re
 
@@ -203,6 +204,8 @@ class Collater(object):
 
     def collate(self, batch):
         elem = batch[0]
+        for elem in batch:
+            elem['edge_index'], _ = dense_to_sparse(torch.ones([elem['loc'].size(0)+1, elem['loc'].size(0)+1]))
         return Batch.from_data_list(batch, self.follow_batch)
 
     def __call__(self, batch):
