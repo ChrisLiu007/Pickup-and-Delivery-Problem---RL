@@ -147,8 +147,9 @@ class PDPDataset(Dataset):
                     # )
                 ]
         self.size = len(self.data)
-    def _graph_construct(self):
-        edges = dense_to_sparse(torch.ones([self.graph_size+1, self.graph_size+1]))
+    @staticmethod
+    def graph_construct(graph_size):
+        edges = dense_to_sparse(torch.ones([graph_size+1, graph_size+1]))
         return edges
     def __len__(self):
         return self.size

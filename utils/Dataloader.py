@@ -8,6 +8,7 @@ from torch_geometric.data import Data
 from torch_geometric.utils import dense_to_sparse
 from torch._six import container_abcs, string_classes, int_classes
 import re
+from problem.pdp import PDPDataset
 
 class Batch(Data):
     r"""A plain old python object modeling a batch of graphs as one big
@@ -204,8 +205,9 @@ class Collater(object):
 
     def collate(self, batch):
         elem = batch[0]
+
         for elem in batch:
-            elem['edge_index'], _ = dense_to_sparse(torch.ones([elem['loc'].size(0)+1, elem['loc'].size(0)+1]))
+            elem['edge_index'], _ = PDPDataset.graph_construct(elem['loc'].size(0))
         return Batch.from_data_list(batch, self.follow_batch)
 
     def __call__(self, batch):
