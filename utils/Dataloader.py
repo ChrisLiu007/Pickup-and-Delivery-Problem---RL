@@ -207,7 +207,7 @@ class Collater(object):
         elem = batch[0]
 
         for elem in batch:
-            elem['edge_index'], _ = PDPDataset.graph_construct(elem['loc'].size(0))
+            elem['edge_index'], elem['edge_attribute'] = PDPDataset.graph_construct(elem['loc'].size(0))
         return Batch.from_data_list(batch, self.follow_batch)
 
     def __call__(self, batch):

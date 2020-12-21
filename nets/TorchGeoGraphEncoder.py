@@ -89,7 +89,7 @@ class GATConvclass(MessagePassing):
         # Calculate keys and values (n_heads, batch_size, graph_size, key/val_size)
         K = torch.matmul(hflat, self.W_key).view(shp) # key value for each of the nodes
         V = torch.matmul(hflat, self.W_val).view(shp) # value of each of the nodes.
-        out = self.propagate(edge_index, x=V, Q=Q, K=K, V=V, size=None)
+        out = self.propagate(edge_index, x=V, Q=Q, K=K, V=V, size=None, edge_attributes = None)
         return out
 
 class GATLayer(mySequential):
