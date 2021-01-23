@@ -1,0 +1,15 @@
+- DONE 31/08 fix capacity problem
+- DONE 31/08 fix going back to depot resets capacity
+
+- DONE 13/10 fix capacity too high
+- Remove unnecessary code
+- 13/10 improve "currently carrying"-representation
+
+
+Interesting lines:
+
+Attention:
+- 216 add more features
+- 410 add another feature to context
+- 493 (Can I use some of the SDVRP logic for PDP? This includes features of what has been (partially delivered))
+
