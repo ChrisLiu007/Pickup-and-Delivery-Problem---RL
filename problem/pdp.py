@@ -17,6 +17,7 @@ class PDP(object):
     def get_costs(dataset, pi):
         batch_size, graph_size = dataset['demand'].size()
         # Check that tours are valid, i.e. contain 0 to n -1
+
         sorted_pi = pi.data.sort(1)[0]
 
         # Sorting it should give all zeros at front and then 1...n
@@ -48,7 +49,7 @@ class PDP(object):
 
         # Length is distance (L2-norm of difference) of each next location to its prev and of first and last to depot
         return (
-            (d[:, 1:] - d[:, :-1]).norm(p=2, dim=2).sum(1)
+            (d[:, 1:-1] - d[:, :-2]).norm(p=2, dim=2).sum(1)
             + (d[:, 0] - dataset['depot']).norm(p=2, dim=1)  # Depot to first
             #+ (d[:, -1] - dataset['depot']).norm(p=2, dim=1)  # Last to depot, will be 0 if depot is last EDIT: Jakob. We don't need this
         ), None

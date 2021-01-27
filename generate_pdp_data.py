@@ -27,10 +27,10 @@ def load_dataset(filename):
         return pickle.load(f)
 
 
-GRAPH_SIZE = 100
+GRAPH_SIZE = 20
 NUM_SAMPLES = 1000
-NAME = "TEST1"
-SEED = 1234
+NAME = "TEST2"
+SEED = 1235
 
 manual_seed(SEED)
 dataset = PDP.make_dataset(size=GRAPH_SIZE, num_samples=NUM_SAMPLES)

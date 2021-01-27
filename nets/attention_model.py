@@ -133,6 +133,36 @@ class AttentionModel(nn.Module):
         # the lookup once... this is the case if all elements in the batch have maximum batch size
         return CachedLookup(self._precompute(embeddings))
 
+    # EDIT JAKOB, in order for beam search to work:
+    def propose_expansions(self, beam, fixed, expand_size=None, normalize=False, max_calc_batch_size=4096):
+        # First dim = batch_size * cur_beam_size
+        log_p_topk, ind_topk = compute_in_batches(
+            lambda b: self._get_log_p_topk(fixed[b.ids], b.state, k=expand_size, normalize=normalize),
+            max_calc_batch_size, beam, n=beam.size()
+        )
+
+        assert log_p_topk.size(1) == 1, "Can only have single step"
+        # This will broadcast, calculate log_p (score) of expansions
+        score_expand = beam.score[:, None] + log_p_topk[:, 0, :]
+
+        # We flatten the action as we need to filter and this cannot be done in 2d
+        flat_action = ind_topk.view(-1)
+        flat_score = score_expand.view(-1)
+        flat_feas = flat_score > -1e10  # != -math.inf triggers
+
+        # Parent is row idx of ind_topk, can be found by enumerating elements and dividing by number of columns
+        flat_parent = torch.arange(flat_action.size(-1), out=flat_action.new()) // ind_topk.size(-1)
+
+        # Filter infeasible
+        feas_ind_2d = torch.nonzero(flat_feas)
+
+        if len(feas_ind_2d) == 0:
+            # Too bad, no feasible expansions at all :(
+            return None, None, None
+
+        feas_ind = feas_ind_2d[:, 0]
+
+        return flat_parent[feas_ind], flat_action[feas_ind], flat_score[feas_ind]
 
     def _calc_log_likelihood(self, _log_p, a, mask):
 
@@ -269,6 +299,19 @@ class AttentionModel(nn.Module):
         )
         return AttentionModelFixed(embeddings, fixed_context, *fixed_attention_node_data)
 
+    # EDIT JAKOB, in order to work with beam search:
+    def _get_log_p_topk(self, fixed, state, k=None, normalize=True):
+        log_p, _ = self._get_log_p(fixed, state, normalize=normalize)
+
+        # Return topk
+        if k is not None and k < log_p.size(-1):
+            return log_p.topk(k, -1)
+
+        # Return all, note different from torch.topk this does not give error if less than k elements along dim
+        return (
+            log_p,
+            torch.arange(log_p.size(-1), device=log_p.device, dtype=torch.int64).repeat(log_p.size(0), 1)[:, None, :]
+        )
 
     def _get_log_p(self, fixed, state, normalize=True):
 
